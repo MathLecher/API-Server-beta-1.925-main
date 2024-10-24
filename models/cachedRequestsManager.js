@@ -14,7 +14,7 @@ export default class CachedRequestsManager {
         console.log(BgWhite + FgBlue, "[Periodic requests data caches cleaning process started...]");
 
     }
-    static add(request, data) {
+    static add(request, data, ETag) {
         if (!cachedRequestsCleanerStarted) {
             cachedRequestsCleanerStarted = true;
             CachedRequestsManager.startCachedRequestsCleaner();
@@ -24,6 +24,7 @@ export default class CachedRequestsManager {
             requestsCaches.push({
                 request,
                 data,
+                ETag,
                 Expire_Time: utilities.nowInSeconds() + requestsCachesExpirationTime
             });
             console.log(BgWhite + FgBlue, `[Data of ${request} requests has been cached]`);
@@ -60,19 +61,17 @@ export default class CachedRequestsManager {
         }
         requestsCaches = requestsCaches.filter( cache => cache.Expire_Time > now);
     }
-    static async get(HttpContext) {
+    static get(HttpContext) {
         if(HttpContext!=undefined){
-            let data = null;
-            data = CachedRequestsManager.find(HttpContext.path.queryString)
-            if(data != null){
-                HttpContext.response.JSON(data,HttpContext.ETag,true);
-                console.log("Donné venant de la cache")
-                return true;
-            }
-            else{
-                return false
+            for(let cache of requestsCaches){
+                let data = CachedRequestsManager.find(HttpContext.path.queryString)
+                if(data != null){
+                    HttpContext.response.JSON(cache.data,cache.ETag,true);
+                    return true;
+                }
             }
         }
+        return false;
         
     }
 
