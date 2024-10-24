@@ -64,7 +64,7 @@ export default class CachedRequestsManager {
     static get(HttpContext) {
         if(HttpContext!=undefined){
             for(let cache of requestsCaches){
-                let data = CachedRequestsManager.find(HttpContext.path.queryString)
+                let data = CachedRequestsManager.find(HttpContext.req.url)
                 if(data != null){
                     HttpContext.response.JSON(cache.data,cache.ETag,true);
                     return true;
